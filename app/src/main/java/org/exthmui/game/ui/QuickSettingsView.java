@@ -72,4 +72,10 @@ public class QuickSettingsView extends LinearLayout {
             tileBase.setConfig(config);
         }
     }
+
+    public void onDestroy() {
+        for (TileBase tileBase : qsTiles) {
+            tileBase.onDestroy();
+        }
+    }
 }
