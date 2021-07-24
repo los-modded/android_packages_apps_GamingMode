@@ -56,11 +56,6 @@
                     android:layout_height="match_parent" />
             </HorizontalScrollView>
 
-            <org.exthmui.game.ui.GamingPerformanceView
-                android:id="@+id/performance_controller"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent" />
-
         </LinearLayout>
     </ScrollView>
 

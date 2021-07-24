@@ -44,12 +44,8 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import org.exthmui.game.R;
 import org.exthmui.game.misc.Constants;
-import org.exthmui.game.ui.GamingPerformanceView;
 import org.exthmui.game.ui.QuickSettingsView;
 import org.exthmui.game.ui.QuickStartAppView;
-
-import top.littlefogcat.danmakulib.danmaku.Danmaku;
-import top.littlefogcat.danmakulib.danmaku.DanmakuManager;
 import top.littlefogcat.danmakulib.utils.ScreenUtil;
 
 public class OverlayService extends Service {
@@ -61,16 +57,12 @@ public class OverlayService extends Service {
     private ImageView mCallControlButton;
     private LinearLayout mGamingOverlayView;
     private ScrollView mGamingMenu;
-    private FrameLayout mDanmakuContainer;
     private QuickSettingsView mQSView;
     private QuickStartAppView mQSAppView;
 
-    private DanmakuManager mDanmakuManager;
 
     private WindowManager mWindowManager;
     private WindowManager.LayoutParams mGamingFBLayoutParams;
-
-    private GamingPerformanceView performanceController;
 
     private Bundle configBundle;
 
@@ -125,7 +117,6 @@ public class OverlayService extends Service {
         }
 
         IntentFilter intentFilter = new IntentFilter();
-        intentFilter.addAction(Constants.Broadcasts.BROADCAST_NEW_DANMAKU);
         intentFilter.addAction(Constants.Broadcasts.BROADCAST_CONFIG_CHANGED);
         intentFilter.addAction(Constants.Broadcasts.BROADCAST_GAMING_MENU_CONTROL);
         LocalBroadcastManager.getInstance(this).registerReceiver(mOMReceiver, intentFilter);
@@ -148,7 +139,6 @@ public class OverlayService extends Service {
         mWindowManager = (WindowManager) getApplicationContext().getSystemService(Context.WINDOW_SERVICE);
         initGamingMenu();
         initFloatingLayout();
-        initDanmaku();
     }
 
     private void updateConfig() {
@@ -177,21 +167,6 @@ public class OverlayService extends Service {
             }
         }
 
-        // 弹幕设置
-        mDanmakuManager.setMaxDanmakuSize(20); // 设置同屏最大弹幕数
-        DanmakuManager.Config config = mDanmakuManager.getConfig(); // 弹幕相关设置
-        config.setScrollSpeed(ScreenUtil.isPortrait() ?
-                configBundle.getInt(Constants.ConfigKeys.DANMAKU_SPEED_VERTICAL, Constants.ConfigDefaultValues.DANMAKU_SPEED_VERTICAL) :
-                configBundle.getInt(Constants.ConfigKeys.DANMAKU_SPEED_HORIZONTAL, Constants.ConfigDefaultValues.DANMAKU_SPEED_HORIZONTAL));
-        config.setLineHeight(ScreenUtil.autoSize(ScreenUtil.isPortrait() ?
-                configBundle.getInt(Constants.ConfigKeys.DANMAKU_SIZE_VERTICAL,Constants.ConfigDefaultValues.DANMAKU_SIZE_VERTICAL) + 4 :
-                configBundle.getInt(Constants.ConfigKeys.DANMAKU_SIZE_HORIZONTAL,Constants.ConfigDefaultValues.DANMAKU_SIZE_HORIZONTAL) + 4)); // 设置行高
-        config.setMaxScrollLine(ScreenUtil.getScreenHeight() / 2 / config.getLineHeight());
-
-        // 性能配置
-        if (performanceController != null) {
-            performanceController.setLevel(configBundle.getInt(Constants.ConfigKeys.PERFORMANCE_LEVEL, Constants.ConfigDefaultValues.PERFORMANCE_LEVEL));
-        }
     }
 
     private WindowManager.LayoutParams getBaseLayoutParams() {
@@ -214,7 +189,6 @@ public class OverlayService extends Service {
             mQSView = mGamingOverlayView.findViewById(R.id.gaming_qs);
             mQSAppView = mGamingOverlayView.findViewById(R.id.gaming_qsapp);
 
-            performanceController = mGamingOverlayView.findViewById(R.id.performance_controller);
             mGamingOverlayView.setOnClickListener(v -> showHideGamingMenu(0));
         }
     }
@@ -330,29 +304,6 @@ public class OverlayService extends Service {
         }
     }
 
-    private void initDanmaku() {
-        if (mWindowManager != null && mDanmakuContainer == null) {
-            mDanmakuContainer = new FrameLayout(this);
-            WindowManager.LayoutParams danmakuParams = getBaseLayoutParams();
-            danmakuParams.flags |= WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE;
-            mWindowManager.addView(mDanmakuContainer, danmakuParams);
-
-            mDanmakuManager = DanmakuManager.getInstance();
-            mDanmakuManager.init(this, mDanmakuContainer);
-        }
-    }
-
-    private void sendDanmaku(String danmakuText) {
-        if (mDanmakuManager == null) return;
-        Danmaku danmaku = new Danmaku();
-        danmaku.text = danmakuText;
-        danmaku.mode = Danmaku.Mode.scroll;
-        danmaku.size = ScreenUtil.autoSize(
-                configBundle.getInt(Constants.ConfigKeys.DANMAKU_SIZE_HORIZONTAL,Constants.ConfigDefaultValues.DANMAKU_SIZE_HORIZONTAL),
-                configBundle.getInt(Constants.ConfigKeys.DANMAKU_SIZE_VERTICAL,Constants.ConfigDefaultValues.DANMAKU_SIZE_VERTICAL));
-        mDanmakuManager.send(danmaku);
-    }
-
     @Override
     public void onDestroy() {
         LocalBroadcastManager.getInstance(this).unregisterReceiver(mOMReceiver);
@@ -360,7 +311,6 @@ public class OverlayService extends Service {
         unregisterReceiver(mSysConfigChangedReceiver);
         if (mWindowManager != null) {
             if (mGamingFloatingLayout != null) mWindowManager.removeViewImmediate(mGamingFloatingLayout);
-            if (mDanmakuContainer != null) mWindowManager.removeViewImmediate(mDanmakuContainer);
             if (mGamingOverlayView != null) mWindowManager.removeViewImmediate(mGamingOverlayView);
         }
         super.onDestroy();
@@ -378,11 +328,6 @@ public class OverlayService extends Service {
             String action = intent.getAction();
             if (action == null) return;
             switch (action) {
-                case Constants.Broadcasts.BROADCAST_NEW_DANMAKU:
-                    String danmaku = intent.getStringExtra("danmaku_text");
-                    if (TextUtils.isEmpty(danmaku)) return;
-                    sendDanmaku(danmaku);
-                    break;
                 case Constants.Broadcasts.BROADCAST_CONFIG_CHANGED:
                     if (intent.getExtras() == null) return;
                     configBundle.putAll(intent.getExtras());

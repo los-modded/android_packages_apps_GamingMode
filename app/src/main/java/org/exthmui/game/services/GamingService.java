@@ -121,10 +121,6 @@ public class GamingService extends Service {
                 setDisableHwKeys(intent.getBooleanExtra("value", Constants.ConfigDefaultValues.DISABLE_HW_KEYS), false);
             } else if (Constants.GamingActionTargets.DISABLE_RINGTONE.equals(target)) {
                 setDisableRingtone(intent.getBooleanExtra("value", Constants.ConfigDefaultValues.DISABLE_RINGTONE));
-            } else if (Constants.GamingActionTargets.SHOW_DANMAKU.equals(target)) {
-                setShowDanmaku(intent.getBooleanExtra("value", Constants.ConfigDefaultValues.SHOW_DANMAKU));
-            } else if (Constants.GamingActionTargets.PERFORMANCE_LEVEL.equals(target)) {
-                setPerformanceLevel(intent.getIntExtra("value", Constants.ConfigDefaultValues.PERFORMANCE_LEVEL));
             } else {
                 return;
             }
@@ -141,7 +137,6 @@ public class GamingService extends Service {
         super.onCreate();
         createNotificationChannel(this, Constants.CHANNEL_GAMING_MODE_STATUS, getString(R.string.channel_gaming_mode_status), NotificationManager.IMPORTANCE_LOW);
 
-        checkNotificationListener();
         checkFreeFormSettings();
 
         mAudioManager = (AudioManager) getSystemService(AUDIO_SERVICE);
@@ -195,49 +190,12 @@ public class GamingService extends Service {
         return super.onStartCommand(intent, flags, startId);
     }
 
-    private void checkNotificationListener() {
-        String notificationListeners = Settings.Secure.getString(getContentResolver(), Settings.Secure.ENABLED_NOTIFICATION_LISTENERS);
-        List<String> listenersList;
-        listenersList = new ArrayList<>();
-        if (!TextUtils.isEmpty(notificationListeners)) {
-            listenersList.addAll(Arrays.asList(notificationListeners.split(":")));
-        }
-        ComponentName danmakuComponent = new ComponentName(this, DanmakuService.class);
-        if (!listenersList.contains(danmakuComponent.flattenToString())) {
-            listenersList.add(danmakuComponent.flattenToString());
-            Settings.Secure.putString(getContentResolver(), Settings.Secure.ENABLED_NOTIFICATION_LISTENERS, String.join(":", listenersList));
-        }
-        NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-        if (!notificationManager.isNotificationListenerAccessGranted(danmakuComponent)) {
-            notificationManager.setNotificationListenerAccessGranted(danmakuComponent, true);
-        }
-    }
-
     private void checkFreeFormSettings() {
         Settings.Global.putInt(getContentResolver(), Settings.Global.DEVELOPMENT_ENABLE_FREEFORM_WINDOWS_SUPPORT, 1);
         Settings.Global.putInt(getContentResolver(), Settings.Global.DEVELOPMENT_FORCE_RESIZABLE_ACTIVITIES, 1);
     }
 
     private void updateConfig() {
-        // danmaku
-        mCurrentConfig.putBoolean(Constants.ConfigKeys.SHOW_DANMAKU, getBooleanSetting(Constants.ConfigKeys.SHOW_DANMAKU, Constants.ConfigDefaultValues.SHOW_DANMAKU));
-        mCurrentConfig.putInt(Constants.ConfigKeys.DANMAKU_SPEED_HORIZONTAL, getIntSetting(Constants.ConfigKeys.DANMAKU_SPEED_HORIZONTAL, Constants.ConfigDefaultValues.DANMAKU_SPEED_HORIZONTAL));
-        mCurrentConfig.putInt(Constants.ConfigKeys.DANMAKU_SPEED_VERTICAL, getIntSetting(Constants.ConfigKeys.DANMAKU_SPEED_VERTICAL, Constants.ConfigDefaultValues.DANMAKU_SPEED_VERTICAL));
-        mCurrentConfig.putInt(Constants.ConfigKeys.DANMAKU_SIZE_HORIZONTAL, getIntSetting(Constants.ConfigKeys.DANMAKU_SIZE_HORIZONTAL, Constants.ConfigDefaultValues.DANMAKU_SIZE_HORIZONTAL));
-        mCurrentConfig.putInt(Constants.ConfigKeys.DANMAKU_SIZE_VERTICAL, getIntSetting(Constants.ConfigKeys.DANMAKU_SIZE_VERTICAL, Constants.ConfigDefaultValues.DANMAKU_SIZE_VERTICAL));
-        mCurrentConfig.putBoolean(Constants.ConfigKeys.DYNAMIC_NOTIFICATION_FILTER, getBooleanSetting(Constants.ConfigKeys.DYNAMIC_NOTIFICATION_FILTER, Constants.ConfigDefaultValues.DYNAMIC_NOTIFICATION_FILTER));
-        mCurrentConfig.putStringArray(Constants.ConfigKeys.NOTIFICATION_APP_BLACKLIST, getStringArraySetting(Constants.ConfigKeys.NOTIFICATION_APP_BLACKLIST));
-
-        // performance
-        boolean changePerformance = getBooleanSetting(Constants.ConfigKeys.CHANGE_PERFORMANCE_LEVEL, Constants.ConfigDefaultValues.CHANGE_PERFORMANCE_LEVEL);
-        int performanceLevel = getIntSetting(Constants.ConfigKeys.PERFORMANCE_LEVEL, Constants.ConfigDefaultValues.PERFORMANCE_LEVEL);
-        if (changePerformance) {
-            setPerformanceLevel(performanceLevel);
-        } else {
-            mCurrentConfig.putInt(Constants.ConfigKeys.PERFORMANCE_LEVEL, performanceLevel);
-        }
-
-        // hw keys & gesture
         boolean disableHwKeys = getBooleanSetting(Constants.ConfigKeys.DISABLE_HW_KEYS, Constants.ConfigDefaultValues.DISABLE_HW_KEYS);
         boolean disableGesture = getBooleanSetting(Constants.ConfigKeys.DISABLE_GESTURE, Constants.ConfigDefaultValues.DISABLE_GESTURE);
         setDisableHwKeys(disableHwKeys, false);
@@ -281,15 +239,6 @@ public class GamingService extends Service {
         } catch (RemoteException e) {
             Log.e(TAG, "Failed to disable/enable gesture!", e);
         }
-    }
-
-    private void setShowDanmaku(boolean show) {
-        mCurrentConfig.putBoolean(Constants.ConfigKeys.SHOW_DANMAKU, show);
-    }
-
-    private void setPerformanceLevel(int level) {
-        SystemProperties.set(Constants.PROP_GAMING_PERFORMANCE, String.valueOf(level));
-        mCurrentConfig.putInt(Constants.ConfigKeys.PERFORMANCE_LEVEL, level);
     }
 
     private void setDisableRingtone(boolean disable) {
@@ -342,7 +291,6 @@ public class GamingService extends Service {
         setDisableHwKeys(false, true);
         setDisableAutoBrightness(false, true);
         setDisableRingtone(false);
-        setPerformanceLevel(-1);
         setAutoRotation(true);
         Settings.System.putInt(getContentResolver(), Settings.System.GAMING_MODE_ACTIVE, 0);
         Toast.makeText(this, R.string.gaming_mode_off, Toast.LENGTH_SHORT).show();

@@ -46,15 +46,6 @@ public class Constants {
     }
 
     public static class ConfigKeys {
-        // 显示弹幕
-        public static final String SHOW_DANMAKU = Settings.System.GAMING_MODE_SHOW_DANMAKU;
-        // 弹幕速度
-        public static final String DANMAKU_SPEED_HORIZONTAL = Settings.System.GAMING_MODE_DANMAKU_SPEED_HORIZONTAL;
-        public static final String DANMAKU_SPEED_VERTICAL = Settings.System.GAMING_MODE_DANMAKU_SPEED_VERTICAL;
-        // 弹幕大小
-        public static final String DANMAKU_SIZE_HORIZONTAL = Settings.System.GAMING_MODE_DANMAKU_SIZE_HORIZONTAL;
-        public static final String DANMAKU_SIZE_VERTICAL = Settings.System.GAMING_MODE_DANMAKU_SIZE_VERTICAL;
-
         // 动态过滤通知
         public static final String DYNAMIC_NOTIFICATION_FILTER = Settings.System.GAMING_MODE_DANMAKU_DYNAMIC_NOTIFICATION_FILTER;
         // 通知黑名单
@@ -72,24 +63,11 @@ public class Constants {
         // 屏蔽手势
         public static final String DISABLE_GESTURE = Settings.System.GAMING_MODE_DISABLE_GESTURE;
 
-        // 性能配置
-        public static final String CHANGE_PERFORMANCE_LEVEL = Settings.System.GAMING_MODE_CHANGE_PERFORMANCE_LEVEL;
-        public static final String PERFORMANCE_LEVEL = Settings.System.GAMING_MODE_PERFORMANCE_LEVEL;
-
         // 快速启动app
         public static final String QUICK_START_APPS = Settings.System.GAMING_MODE_QS_APP_LIST;
     }
 
     public static class ConfigDefaultValues {
-        // 显示弹幕
-        public static final boolean SHOW_DANMAKU = true;
-        // 弹幕速度
-        public static final int DANMAKU_SPEED_HORIZONTAL = 300;
-        public static final int DANMAKU_SPEED_VERTICAL = 300;
-        // 弹幕大小
-        public static final int DANMAKU_SIZE_HORIZONTAL = 36;
-        public static final int DANMAKU_SIZE_VERTICAL = 36;
-
         // 动态过滤通知
         public static final boolean DYNAMIC_NOTIFICATION_FILTER = true;
 
@@ -105,14 +83,9 @@ public class Constants {
         // 屏蔽按键
         public static final boolean DISABLE_HW_KEYS = false;
 
-        // 性能配置
-        public static final boolean CHANGE_PERFORMANCE_LEVEL = true;
-        public static final int PERFORMANCE_LEVEL = 5;
     }
 
     public static class GamingActionTargets {
-        // 显示弹幕
-        public static final String SHOW_DANMAKU = ConfigKeys.SHOW_DANMAKU;
         // 请勿打扰模式
         public static final String DISABLE_RINGTONE = ConfigKeys.DISABLE_RINGTONE;
         // 屏蔽按键
@@ -121,8 +94,6 @@ public class Constants {
         public static final String DISABLE_GESTURE = ConfigKeys.DISABLE_GESTURE;
         // 自动亮度
         public static final String DISABLE_AUTO_BRIGHTNESS = ConfigKeys.DISABLE_AUTO_BRIGHTNESS;
-        // 性能配置
-        public static final String PERFORMANCE_LEVEL = ConfigKeys.PERFORMANCE_LEVEL;
     }
 
     public static class LocalConfigKeys {
